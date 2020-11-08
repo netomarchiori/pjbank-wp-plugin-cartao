@@ -13,14 +13,14 @@ Domain Path: /languages
 */
 
 
-function some_custom_checkout_field_cartao($checkout){
+function some_custom_checkout_field_cartao($checkout)
+{
 	$user_id = get_current_user_id();
-    
-    
 }
-add_action( 'woocommerce_after_order_notes', 'some_custom_checkout_field_cartao' );
+add_action('woocommerce_after_order_notes', 'some_custom_checkout_field_cartao');
 
-function form_append_cartao(){
+function form_append_cartao()
+{
 	global $woocommerce;
 	$total = $woocommerce->cart->total;
 
@@ -34,38 +34,44 @@ function form_append_cartao(){
 
 	$credencial = $options['credencial_cartao'];
 
-	?>
-		<script type="text/javascript">/*{literal}<![CDATA[*/
-			var credencial = '<?php echo $credencial ?>';
-			var options = '<?php echo $options["homologacao"]=="yes" ? true : false ?>';
-			superlogica.require("pjbank");
-			superlogica.pjbank("checkout_transparente", credencial,options);
+?>
+	<script type="text/javascript">
+		/*{literal}<![CDATA[*/
+		var credencial = '<?php echo $credencial ?>';
+		var options = '<?php echo $options["homologacao"] == "yes" ? true : false ?>';
+		superlogica.require("pjbank");
+		superlogica.pjbank("checkout_transparente", credencial, options);
 		/*]]>*/
-		</script>
-		<script>
-			jQuery(document).ready(function($){
-				var enabled_cartao = '<?php echo $enabled_cartao ?>';
+	</script>
+	<script>
+		jQuery(document).ready(function($) {
+			var enabled_cartao = '<?php echo $enabled_cartao ?>';
 
-				if(enabled_cartao == 'no'){
-					enabled_cartao = false;
-				}else{
-					enabled_cartao = true;
-				}
-				console.log("Cartão: "+enabled_cartao);
+			if (enabled_cartao == 'no') {
+				enabled_cartao = false;
+			} else {
+				enabled_cartao = true;
+			}
+			console.log("Cartão: " + enabled_cartao);
 
-				if(enabled_cartao){
+			if (enabled_cartao) {
 
-					var jurosVista = "<?php echo $jurosVista; ?>";
-					var jurosPri = "<?php echo $jurosPri; ?>";
-					var jurosSec = "<?php echo $jurosSec; ?>";
-					var jurosTri = "<?php echo $jurosTri; ?>";
-					var total = "<?php echo $total; ?>";
+				var jurosVista = "<?php echo $jurosVista; ?>";
+				var jurosPri = "<?php echo $jurosPri; ?>";
+				var jurosSec = "<?php echo $jurosSec; ?>";
+				var jurosTri = "<?php echo $jurosTri; ?>";
+				var jurosPriText = "<?php echo ($jurosPri == 0) ? "sem juros" : "com juros"; ?>";
+				var jurosSecText = "<?php echo ($jurosSec == 0) ? "sem juros" : "com juros"; ?>";
+				var jurosTriText = "<?php echo ($jurosTri == 0) ? "sem juros" : "com juros"; ?>";
+				var total = "<?php echo $total; ?>";
 
-					var ano = (new Date()).getFullYear();
-					var lano = ano + 10;
+				var ano = (new Date()).getFullYear();
+				var lano = ano + 10;
 
-					$( 'body' ).on( 'updated_checkout', function() {
-						$(".payment_method_pjbank_cartao").append(" \
+				$('body').on('updated_checkout', function() {
+					$(".payment_method_pjbank_cartao .post_cartao").remove();
+					$(".payment_method_pjbank_cartao .dados-cartao").remove();
+					$(".payment_method_pjbank_cartao").append(" \
 							<input type='hidden' class='post_cartao' name='post_cartao' value='false'>\
 							<div class='dados-cartao col1-set' style='display: none'> \
 								<div class='box_pagamento col-1'> \
@@ -76,7 +82,7 @@ function form_append_cartao(){
 										</p> \
 										<p class='vencimento-cartao form-row form-row-last'> \
 											<label for=''>Data de vencimento</label> \
-											<input type='number' min='1' max='12' name='mes_vencimento' class='input-text input-data-mes' placeholder='MM'> <input type='number' name='ano_vencimento' min='"+ano+"' max='"+lano+"' class='input-text input-data-ano' placeholder='AAAA'> \
+											<input type='number' min='1' max='12' name='mes_vencimento' class='input-text input-data-mes' placeholder='MM' maxlength='2'> <input type='number' name='ano_vencimento' min='" + ano + "' max='" + lano + "' class='input-text input-data-ano' placeholder='AAAA'> \
 										</p> \
 										<p class='nome-cartao form-row form-row-first'> \
 											<label for='nome_cartao'>Nome impresso no cartão</label> \
@@ -84,147 +90,147 @@ function form_append_cartao(){
 										</p> \
 										<p class='cpf-cartao form-row form-row-last'> \
 											<label for='cpf_cartao'>CPF do portador do cartão</label> \
-											<input type='text' name='cpf_cartao' class='input-text'> \
+											<input type='text' name='cpf_cartao' class='input-text' maxlength='11'> \
 										</p> \
 										<p class='codigo-cartao form-row form-row-first'> \
 											<label for='codigo_cvv'>Código CVV</label> \
-											<input type='text' name='codigo_cvv' class='input-text'> \
+											<input type='text' name='codigo_cvv' class='input-text' maxlength='4'> \
 										</p> \
 										<p class='parcelamento-cartao form-row form-row-last'> \
 											<label for='parcelas'>Quantidade de Parcelas</label> \
 											<select name='total' class='input-text input-total'> \
-												<option qtparcelas='1' parcelamento='"+retornaParcela(total, 1, jurosVista)+"' juros='"+jurosVista+"' value='"+retornaTotal(total, 1, jurosVista)+"' selected='selected'>À Vista - "+calculaJuros(total, 1, jurosVista)+"</option> \
-												<option qtparcelas='2' parcelamento='"+retornaParcela(total, 2, jurosPri)+"' juros='"+jurosPri+"' value='"+retornaTotal(total, 2, jurosPri)+"'>2x com juros de "+calculaJuros(total, 2, jurosPri)+"</option> \
-												<option qtparcelas='3' parcelamento='"+retornaParcela(total, 3, jurosPri)+"' juros='"+jurosPri+"' value='"+retornaTotal(total, 3, jurosPri)+"'>3x com juros de "+calculaJuros(total, 3, jurosPri)+"</option> \
-												<option qtparcelas='4' parcelamento='"+retornaParcela(total, 4, jurosSec)+"' juros='"+jurosSec+"' value='"+retornaTotal(total, 4, jurosSec)+"'>4x com juros de "+calculaJuros(total, 4, jurosSec)+"</option> \
-												<option qtparcelas='5' parcelamento='"+retornaParcela(total, 5, jurosSec)+"' juros='"+jurosSec+"' value='"+retornaTotal(total, 5, jurosSec)+"'>5x com juros de "+calculaJuros(total, 5, jurosSec)+"</option> \
-												<option qtparcelas='6' parcelamento='"+retornaParcela(total, 6, jurosSec)+"' juros='"+jurosSec+"' value='"+retornaTotal(total, 6, jurosSec)+"'>6x com juros de "+calculaJuros(total, 6, jurosSec)+"</option> \
-												<option qtparcelas='7' parcelamento='"+retornaParcela(total, 7, jurosTri)+"' juros='"+jurosTri+"' value='"+retornaTotal(total, 7, jurosTri)+"'>7x com juros de "+calculaJuros(total, 7, jurosTri)+"</option> \
-												<option qtparcelas='8' parcelamento='"+retornaParcela(total, 8, jurosTri)+"' juros='"+jurosTri+"' value='"+retornaTotal(total, 8, jurosTri)+"'>8x com juros de "+calculaJuros(total, 8, jurosTri)+"</option> \
-												<option qtparcelas='9' parcelamento='"+retornaParcela(total, 9, jurosTri)+"' juros='"+jurosTri+"' value='"+retornaTotal(total, 9, jurosTri)+"'>9x com juros de "+calculaJuros(total, 9, jurosTri)+"</option> \
-												<option qtparcelas='10' parcelamento='"+retornaParcela(total, 10, jurosTri)+"' juros='"+jurosTri+"' value='"+retornaTotal(total, 10, jurosTri)+"'>10x com juros de "+calculaJuros(total, 10, jurosTri)+"</option> \
-												<option qtparcelas='11' parcelamento='"+retornaParcela(total, 11, jurosTri)+"' juros='"+jurosTri+"' value='"+retornaTotal(total, 11, jurosTri)+"'>11x com juros de "+calculaJuros(total, 11, jurosTri)+"</option> \
-												<option qtparcelas='12' parcelamento='"+retornaParcela(total, 12, jurosTri)+"' juros='"+jurosTri+"' value='"+retornaTotal(total, 12, jurosTri)+"'>12x com juros de "+calculaJuros(total, 12, jurosTri)+"</option> \
+												<option qtparcelas='1' parcelamento='" + retornaParcela(total, 1, jurosVista) + "' juros='" + jurosVista + "' value='" + retornaTotal(total, 1, jurosVista) + "' selected='selected'>A Vista - " + calculaJuros(total, 1, jurosVista) + "</option> \
+												<option qtparcelas='2' parcelamento='" + retornaParcela(total, 2, jurosPri) + "' juros='" + jurosPri + "' value='" + retornaTotal(total, 2, jurosPri) + "'>2x " + jurosPriText + " de " + calculaJuros(total, 2, jurosPri) + "</option> \
+												<option qtparcelas='3' parcelamento='" + retornaParcela(total, 3, jurosPri) + "' juros='" + jurosPri + "' value='" + retornaTotal(total, 3, jurosPri) + "'>3x " + jurosPriText + " de " + calculaJuros(total, 3, jurosPri) + "</option> \
+												<option qtparcelas='4' parcelamento='" + retornaParcela(total, 4, jurosSec) + "' juros='" + jurosSec + "' value='" + retornaTotal(total, 4, jurosSec) + "'>4x " + jurosSecText + " de " + calculaJuros(total, 4, jurosSec) + "</option> \
+												<option qtparcelas='5' parcelamento='" + retornaParcela(total, 5, jurosSec) + "' juros='" + jurosSec + "' value='" + retornaTotal(total, 5, jurosSec) + "'>5x " + jurosSecText + " de " + calculaJuros(total, 5, jurosSec) + "</option> \
+												<option qtparcelas='6' parcelamento='" + retornaParcela(total, 6, jurosSec) + "' juros='" + jurosSec + "' value='" + retornaTotal(total, 6, jurosSec) + "'>6x " + jurosSecText + " de " + calculaJuros(total, 6, jurosSec) + "</option> \
+												<option qtparcelas='7' parcelamento='" + retornaParcela(total, 7, jurosTri) + "' juros='" + jurosTri + "' value='" + retornaTotal(total, 7, jurosTri) + "'>7x " + jurosTriText + " de " + calculaJuros(total, 7, jurosTri) + "</option> \
+												<option qtparcelas='8' parcelamento='" + retornaParcela(total, 8, jurosTri) + "' juros='" + jurosTri + "' value='" + retornaTotal(total, 8, jurosTri) + "'>8x " + jurosTriText + " de " + calculaJuros(total, 8, jurosTri) + "</option> \
+												<option qtparcelas='9' parcelamento='" + retornaParcela(total, 9, jurosTri) + "' juros='" + jurosTri + "' value='" + retornaTotal(total, 9, jurosTri) + "'>9x " + jurosTriText + " de " + calculaJuros(total, 9, jurosTri) + "</option> \
+												<option qtparcelas='10' parcelamento='" + retornaParcela(total, 10, jurosTri) + "' juros='" + jurosTri + "' value='" + retornaTotal(total, 10, jurosTri) + "'>10x " + jurosTriText + " de " + calculaJuros(total, 10, jurosTri) + "</option> \
+												<option qtparcelas='11' parcelamento='" + retornaParcela(total, 11, jurosTri) + "' juros='" + jurosTri + "' value='" + retornaTotal(total, 11, jurosTri) + "'>11x " + jurosTriText + " de " + calculaJuros(total, 11, jurosTri) + "</option> \
+												<option qtparcelas='12' parcelamento='" + retornaParcela(total, 12, jurosTri) + "' juros='" + jurosTri + "' value='" + retornaTotal(total, 12, jurosTri) + "'>12x " + jurosTriText + " de " + calculaJuros(total, 12, jurosTri) + "</option> \
 											</select>\
 											<input type='hidden' value='0' name='juros' class='input-juros'>\
 											<input type='hidden' value='1' name='parcelas' class='input-parcelas'>\
-											<input type='hidden' value='"+total+"' name='parcelamento' class='input-parcelamento'>\
+											<input type='hidden' value='" + total + "' name='parcelamento' class='input-parcelamento'>\
 										</p> \
 										<input type='hidden' name='pjbank-token' class='pjbank-token'> \
 									</div> \
 								</div> \
-							</div> "
-						);
+							</div> ");
 
-						if($('#payment_method_pjbank_cartao').is(':checked')) {
+					if ($('#payment_method_pjbank_cartao').is(':checked')) {
+						$(".dados-cartao").slideDown("fast");
+						$(".post_cartao").val("true");
+					}
+
+					$(".payment_methods .input-radio").on('click', function(e) {
+						if ($('#payment_method_pjbank_cartao').is(':checked')) {
 							$(".dados-cartao").slideDown("fast");
 							$(".post_cartao").val("true");
+						} else {
+							$(".dados-cartao").slideUp("fast");
+							$(".post_cartao").val("false");
 						}
+					})
 
-						$(".payment_methods .input-radio").on('click', function(e){	
-							if($('#payment_method_pjbank_cartao').is(':checked')) {
-								$(".dados-cartao").slideDown("fast");
-								$(".post_cartao").val("true");
-							}else{
-								$(".dados-cartao").slideUp("fast");
-								$(".post_cartao").val("false");
-							}
-						})
-						
-						$(".dados-cartao .input-total").change(function(){
-							$(".dados-cartao .input-juros").val($(".dados-cartao .input-total option:selected").attr('juros'));
-							$(".dados-cartao .input-parcelas").val($(".dados-cartao .input-total option:selected").attr('qtparcelas'));
-							$(".dados-cartao .input-parcelamento").val($(".dados-cartao .input-total option:selected").attr('parcelamento'));
-						});
+					$(".dados-cartao .input-total").change(function() {
+						$(".dados-cartao .input-juros").val($(".dados-cartao .input-total option:selected").attr('juros'));
+						$(".dados-cartao .input-parcelas").val($(".dados-cartao .input-total option:selected").attr('qtparcelas'));
+						$(".dados-cartao .input-parcelamento").val($(".dados-cartao .input-total option:selected").attr('parcelamento'));
 					});
-				}
-			});
-		</script>
-	<?php
+				});
+			}
+		});
+	</script>
+<?php
 }
 add_action('woocommerce_checkout_after_order_review', 'form_append_cartao');
 
-function some_custom_checkout_field_process_cartao() {
+function some_custom_checkout_field_process_cartao()
+{
 
-	if ($_POST['post_cartao'] == 'true'){
-		
-		if(!$_POST['mes_vencimento']){
-			wc_add_notice( __( '<b>Mês de vencimento do cartão</b> é um campo obrigatório.' ), 'error' );
+	if ($_POST['post_cartao'] == 'true') {
+
+		if (!$_POST['mes_vencimento']) {
+			wc_add_notice(__('<b>Mês de vencimento do cartão</b> é um campo obrigatório.'), 'error');
 		}
-		if(!$_POST['ano_vencimento']){
-			wc_add_notice( __( '<b>Ano de vencimento do cartão</b> é um campo obrigatório.' ), 'error' );
+		if (!$_POST['ano_vencimento']) {
+			wc_add_notice(__('<b>Ano de vencimento do cartão</b> é um campo obrigatório.'), 'error');
 		}
-		if(!$_POST['nome_cartao']){
-			wc_add_notice( __( '<b>Nome do portador do cartão</b> é um campo obrigatório.' ), 'error' );
+		if (!$_POST['nome_cartao']) {
+			wc_add_notice(__('<b>Nome do portador do cartão</b> é um campo obrigatório.'), 'error');
 		}
-		if(!$_POST['cpf_cartao']){
-			wc_add_notice( __( '<b>CPF do portador do cartão</b> é um campo obrigatório.' ), 'error' );
+		if (!$_POST['cpf_cartao']) {
+			wc_add_notice(__('<b>CPF do portador do cartão</b> é um campo obrigatório.'), 'error');
 		}
-		if(!$_POST['codigo_cvv']){
-			wc_add_notice( __( '<b>Código CVV do cartão</b> é um campo obrigatório.' ), 'error' );
+		if (!$_POST['codigo_cvv']) {
+			wc_add_notice(__('<b>Código CVV do cartão</b> é um campo obrigatório.'), 'error');
 		}
 	}
-
 }
 add_action('woocommerce_checkout_process', 'some_custom_checkout_field_process_cartao');
 
-function some_custom_checkout_field_update_order_meta_cartao($order_id ) {
+function some_custom_checkout_field_update_order_meta_cartao($order_id)
+{
 }
-add_action( 'woocommerce_checkout_update_order_meta', 'some_custom_checkout_field_update_order_meta_cartao' );
+add_action('woocommerce_checkout_update_order_meta', 'some_custom_checkout_field_update_order_meta_cartao');
 
-function init_pjbank_getway_cartao(){
+function init_pjbank_getway_cartao()
+{
 	require_once("WC_PJBank_Gateway_Cartao.php");
-	
-	wp_enqueue_style('style-cartao', plugin_dir_url( __FILE__ ) . 'css/style.css');
 
-	wp_enqueue_script('calcula-juros', plugin_dir_url( __FILE__ ) . 'js/calcula-juros.js');
+	wp_enqueue_style('style-cartao', plugin_dir_url(__FILE__) . 'css/style.css');
+
+	wp_enqueue_script('calcula-juros', plugin_dir_url(__FILE__) . 'js/calcula-juros.js');
 	wp_enqueue_script('superlogica', 'https://s3-sa-east-1.amazonaws.com/widgets.superlogica.net/embed.js');
 }
-add_action( 'wp_loaded', 'init_pjbank_getway_cartao' );
+add_action('wp_loaded', 'init_pjbank_getway_cartao');
 
 
-function init_checkout_transparente_cartao(){
-	
+function init_checkout_transparente_cartao()
+{
 }
-add_action( 'after_setup_theme', 'init_checkout_transparente_cartao');
+add_action('after_setup_theme', 'init_checkout_transparente_cartao');
 
-function add_pjbank_gateway_class_cartao( $methods ) { 
-	
+function add_pjbank_gateway_class_cartao($methods)
+{
+
 	$methods[] = 'WC_PJBank_Gateway_Cartao';
 	return $methods;
 }
-add_filter( 'woocommerce_payment_gateways', 'add_pjbank_gateway_class_cartao' );
+add_filter('woocommerce_payment_gateways', 'add_pjbank_gateway_class_cartao');
 
-function custom_fields_admin_cartao($order){
-	
-	$pj_cartao = get_post_meta( $order->get_id(), '_pj_cartao');
+function custom_fields_admin_cartao($order)
+{
 
-	if($pj_cartao){
-		
-		$juros = get_post_meta( $order->get_id(), '_juros');
-		if($juros[0] > 0){
+	$pj_cartao = get_post_meta($order->get_id(), '_pj_cartao');
+
+	if ($pj_cartao) {
+
+		$juros = get_post_meta($order->get_id(), '_juros');
+		if ($juros[0] > 0) {
 			echo "<p><b style='color: #333'>Juros:</b> " . $juros[0] . "%</p>";
-		}else{
+		} else {
 			echo "<p><b style='color: #333'>Juros:</b> Indisponível</p>";
 		}
 
-		$parcelamento = get_post_meta( $order->get_id(), '_parcelamento');
-		$parcelas = get_post_meta( $order->get_id(), '_parcelas' );
-		if($parcelas[0] > 0){
-			echo "<p><b style='color: #333'>Parcelas:</b> " . $parcelas[0] . "x de R$" . $parcelamento[0] ."</p>";
-		}else{
+		$parcelamento = get_post_meta($order->get_id(), '_parcelamento');
+		$parcelas = get_post_meta($order->get_id(), '_parcelas');
+		if ($parcelas[0] > 0) {
+			echo "<p><b style='color: #333'>Parcelas:</b> " . $parcelas[0] . "x de R$" . $parcelamento[0] . "</p>";
+		} else {
 			echo "<p><b style='color: #333'>Parcelas:</b> Indisponível</p>";
 		}
-		
-		$valor_total = get_post_meta( $order->get_id(), '_valor_total' );
-		if($valor_total[0] > 0){
-			echo "<p><b style='color: #333'>Valor total c/ juros:</b> R$".  $valor_total[0] . "</p>";
-		}else{
+
+		$valor_total = get_post_meta($order->get_id(), '_valor_total');
+		if ($valor_total[0] > 0) {
+			echo "<p><b style='color: #333'>Valor total c/ juros:</b> R$" .  $valor_total[0] . "</p>";
+		} else {
 			echo "<p><b style='color: #333'>Valor total c/ juros:</b> Indisponível</p>";
 		}
 	}
-
 }
-add_action( 'woocommerce_admin_order_data_after_billing_address', 'custom_fields_admin_cartao', 10, 1 );
-
-
+add_action('woocommerce_admin_order_data_after_billing_address', 'custom_fields_admin_cartao', 10, 1);
