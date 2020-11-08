@@ -1,7 +1,9 @@
 <?php
 
-class WC_PJBank_Gateway_Cartao extends WC_Payment_Gateway {
-    function __construct(){
+class WC_PJBank_Gateway_Cartao extends WC_Payment_Gateway
+{
+    function __construct()
+    {
         // define configurações basicas do plugin
         $this->id = "pjbank_cartao";
         $this->method_title = "PJBank - Cartão";
@@ -16,81 +18,83 @@ class WC_PJBank_Gateway_Cartao extends WC_Payment_Gateway {
         $this->title = $this->settings['title_cartao'];
         $this->token = $this->settings['credencial_cartao'];
 
-        add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
+        add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this, 'process_admin_options'));
     }
 
-    public function init_form_fields(){
+    public function init_form_fields()
+    {
         $this->form_fields = array(
             'enabled' => array(
-                'title' => __( 'Enable/Disable', 'woocommerce' ),
+                'title' => __('Enable/Disable', 'woocommerce'),
                 'type' => 'checkbox',
-                'label' => __( 'Pagamento Habilitado', 'woocommerce' ),
+                'label' => __('Pagamento Habilitado', 'woocommerce'),
                 'default' => 'no'
             ),
             'homologacao' => array(
-                'title' => __( 'Ambiente Homologação ?'),
+                'title' => __('Ambiente Homologação ?'),
                 'type' => 'checkbox',
-                'description' => __( 'Informa ao plugin ambiente de homologação', 'woocommerce'),
+                'description' => __('Informa ao plugin ambiente de homologação', 'woocommerce'),
                 'default' => 'yes',
             ),
             'credencial_cartao' => array(
-                'title' => __( 'Credencial', 'woocommerce' ),
+                'title' => __('Credencial', 'woocommerce'),
                 'type' => 'text',
-                'description' => __( 'Adicione sua credencial', 'woocommerce' ),
-                'default' => __( '', 'woocommerce' ),
+                'description' => __('Adicione sua credencial', 'woocommerce'),
+                'default' => __('', 'woocommerce'),
                 'desc_tip'      => true,
             ),
             'chave_cartao' => array(
-                'title' => __( 'Chave', 'woocommerce' ),
+                'title' => __('Chave', 'woocommerce'),
                 'type' => 'text',
-                'description' => __( 'Adicione sua chave', 'woocommerce' ),
-                'default' => __( '', 'woocommerce' ),
+                'description' => __('Adicione sua chave', 'woocommerce'),
+                'default' => __('', 'woocommerce'),
                 'desc_tip'      => true,
             ),
             'title_cartao' => array(
-                'title' => __( 'Título', 'woocommerce' ),
+                'title' => __('Título', 'woocommerce'),
                 'type' => 'text',
-                'description' => __( 'Adicione um título para seu metodo de pagamento', 'woocommerce' ),
-                'default' => __( 'Cartão de Crédito', 'woocommerce' ),
+                'description' => __('Adicione um título para seu metodo de pagamento', 'woocommerce'),
+                'default' => __('Cartão de Crédito', 'woocommerce'),
                 'desc_tip'      => true,
             ),
             'juros_vista' => array(
-                'title' => __( 'Juros pagamento à vista'),
+                'title' => __('Juros pagamento à vista'),
                 'type' => 'number',
-                'description' => __( 'Porcentagem de juros que será cobrado no pagamento à vista', 'woocommerce'),
+                'description' => __('Porcentagem de juros que será cobrado no pagamento à vista', 'woocommerce'),
                 'desc_tip' => true,
             ),
             'juros_pri' => array(
-                'title' => __( 'Juros parcelamento 2x ~ 3x'),
+                'title' => __('Juros parcelamento 2x ~ 3x'),
                 'type' => 'number',
-                'description' => __( 'Porcentagem de juros que será cobrado no parcelamento 2x até 3x', 'woocommerce'),
+                'description' => __('Porcentagem de juros que será cobrado no parcelamento 2x até 3x', 'woocommerce'),
                 'desc_tip' => true,
             ),
             'juros_sec' => array(
-                'title' => __( 'Juros parcelamento 4x ~ 6x'),
+                'title' => __('Juros parcelamento 4x ~ 6x'),
                 'type' => 'number',
-                'description' => __( 'Porcentagem de juros que será cobrado no parcelamento 4x até 6x', 'woocommerce'),
+                'description' => __('Porcentagem de juros que será cobrado no parcelamento 4x até 6x', 'woocommerce'),
                 'desc_tip' => true,
             ),
             'juros_tri' => array(
-                'title' => __( 'Juros parcelamento 7x ~ 12x'),
+                'title' => __('Juros parcelamento 7x ~ 12x'),
                 'type' => 'number',
-                'description' => __( 'Porcentagem de juros que será cobrado no parcelamento 7x até 12x', 'woocommerce'),
+                'description' => __('Porcentagem de juros que será cobrado no parcelamento 7x até 12x', 'woocommerce'),
                 'desc_tip' => true,
             ),
             'webhook' => array(
-                'title' => __( 'URL Webhook'),
+                'title' => __('URL Webhook'),
                 'type' => 'text',
-                'description' => __( 'URL que será chamada em caso de alterações na transação (consultar documentação do PJBank)', 'woocommerce'),
+                'description' => __('URL que será chamada em caso de alterações na transação (consultar documentação do PJBank)', 'woocommerce'),
                 'desc_tip' => true,
             ),
         );
     }
 
-    public function process_payment($order_id){
+    public function process_payment($order_id)
+    {
         global $woocommerce;
-        $order = wc_get_order( $order_id );
-        
+        $order = wc_get_order($order_id);
+
         $token_cartao = $_POST['pjbank-token'];
 
         $nome_cartao = $_POST['nome_cartao'];
@@ -101,57 +105,52 @@ class WC_PJBank_Gateway_Cartao extends WC_Payment_Gateway {
         $total = $order->total;
         $parcelamento = $_POST['parcelamento'];
         $parcelas = $_POST['parcelas'];
-        if($parcelas==1){
+        if ($parcelas == 1) {
             $juros =  $this->get_option('juros_vista');
-        }else if(in_array($parcelas,array(2,3))){
+        } else if (in_array($parcelas, array(2, 3))) {
             $juros =  $this->get_option('juros_pri');
-        }else if(in_array($parcelas,array(4,5,6))){
+        } else if (in_array($parcelas, array(4, 5, 6))) {
             $juros =  $this->get_option('juros_sec');
-        }else if(in_array($parcelas,array(7,8,9,10,11,12))){
+        } else if (in_array($parcelas, array(7, 8, 9, 10, 11, 12))) {
             $juros =  $this->get_option('juros_tri');
-        }else{
+        } else {
             return array(
                 'result' => 'error',
-                'redirect' => $this->get_return_url( $order )
+                'redirect' => $this->get_return_url($order)
             );
         }
-        $total = number_format(floatval ($order->total * pow ( (1 + ($juros/100)), $parcelas )), 2);
+        $total = number_format(floatval($order->total * pow((1 + ($juros / 100)), $parcelas)), 2);
 
         // Busca o usuário logado e as configurações do Plugin
         $current_user = wp_get_current_user();
         $user_id = get_current_user_id();
         $options = get_option('woocommerce_pjbank_cartao_settings');
 
-        update_post_meta( $order_id, '_pj_cartao', true);
-        update_post_meta( $order_id, '_juros', $juros);
-        update_post_meta( $order_id, '_parcelamento', $parcelamento );
-        update_post_meta( $order_id, '_parcelas', $parcelas );
-        update_post_meta( $order_id, '_valor_total', $total );
+        update_post_meta($order_id, '_pj_cartao', true);
+        update_post_meta($order_id, '_juros', $juros);
+        update_post_meta($order_id, '_parcelamento', $parcelamento);
+        update_post_meta($order_id, '_parcelas', $parcelas);
+        update_post_meta($order_id, '_valor_total', $total);
 
-        // Reduce stock levels
-        // $order->reduce_order_stock();
-
-        // Remove cart
-        // $woocommerce->cart->empty_cart();
-        $api = $options["homologacao"]=="yes" ? "sandbox" : "api";
+        $api = $options["homologacao"] == "yes" ? "sandbox" : "api";
         // Inicia chamada cURL
         $curl = curl_init();
         curl_setopt_array($curl, array(
-            CURLOPT_URL => "https://".$api.".pjbank.com.br/recebimentos/".$options['credencial_cartao']."/transacoes",
+            CURLOPT_URL => "https://" . $api . ".pjbank.com.br/recebimentos/" . $options['credencial_cartao'] . "/transacoes",
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => "",
             CURLOPT_MAXREDIRS => 10,
             CURLOPT_TIMEOUT => 30,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => "POST",            
+            CURLOPT_CUSTOMREQUEST => "POST",
             CURLOPT_POSTFIELDS => json_encode(array(
                 "token_cartao" => $token_cartao,
                 "nome_cartao" => $nome_cartao,
                 "mes_vencimento" => $mes_vencimento,
                 "ano_vencimento" => $ano_vencimento,
                 "cpf_cartao" => $cpf_cartao,
-                "email_cartao" => get_user_meta( $user_id, 'billing_email', true ),
-                "celular_cartao" => get_user_meta( $user_id, 'billing_phone', true),
+                "email_cartao" => get_user_meta($user_id, 'billing_email', true),
+                "celular_cartao" => get_user_meta($user_id, 'billing_phone', true),
                 "codigo_cvv" => $codigo_cvv,
                 "valor" => $total,
                 "parcelas" => $parcelas,
@@ -159,51 +158,59 @@ class WC_PJBank_Gateway_Cartao extends WC_Payment_Gateway {
             )),
             CURLOPT_HTTPHEADER => array(
                 "content-type: application/json",
-                "X-CHAVE: ".$options['chave_cartao']." "
+                "X-CHAVE: " . $options['chave_cartao'] . " "
             ),
-        )); 
+        ));
         // Retorno da API é salvo no $response
         $response = curl_exec($curl);
         curl_close($curl);
-        
+
         // Adiciona custom note no pedido, com o JSON que retorna da API
-        $order->add_order_note('Response: '.$response);
+        //TODO: Parse prior to add note, make it look nicer!
+        $order->add_order_note('Response: ' . $response);
 
         $response = json_decode($response);
 
         foreach ($response as $key => $value) {
             // $order->add_order_note($key, $value);
-            if($key == 'status'){
-                if(($value != 200) && ($value != 201)){
+            if ($key == 'status') {
+                if (($value != 200) && ($value != 201)) {
                     $error = true;
                     //Melhorando msg de erro para internauta
-                    wc_add_notice( __('Erro de pagamento: ', 'woothemes') . $response->msg, 'error' );
+                    wc_add_notice(__('Erro de pagamento: ', 'woothemes') . $response->msg, 'error');
+
+                    //TODO: Maybe not the best plate to have this
                     $order->update_status('cancelled');
+
                     return array(
                         'result'   => 'failure',
                         'messages' => "errroooou"
                     );
-                }else{
+                } else {
                     $order->update_status('completed');
-                      // Return thankyou redirect
+                    // Return thankyou redirect
+
+                    // Reduce stock levels
+                    $order->reduce_order_stock();
+
+                    // Remove cart
+                    $woocommerce->cart->empty_cart();
                     return array(
                         'result' => 'success',
-                        'redirect' => $this->get_return_url( $order )
-                    );  
+                        'redirect' => $this->get_return_url($order)
+                    );
                 }
             }
         }
-
-        
     }
 
-    public function admin_options(){
-        echo '<h3>'.__('PJBank - Cartão de Crédito', 'woocommerce').'</h3>';
-        echo '<p>'.__('Receba pagamentos de cartão através do PJBank.').'</p>';
+    public function admin_options()
+    {
+        echo '<h3>' . __('PJBank - Cartão de Crédito', 'woocommerce') . '</h3>';
+        echo '<p>' . __('Receba pagamentos de cartão através do PJBank.') . '</p>';
         echo '<table class="form-table">';
         // Generate the HTML For the settings form.
-        $this -> generate_settings_html();
+        $this->generate_settings_html();
         echo '</table>';
     }
-
 }
